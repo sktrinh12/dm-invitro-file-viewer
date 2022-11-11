@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+requests
+cx_Oracle
+rich
+pytest-asyncio
