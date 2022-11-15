@@ -37,28 +37,39 @@ main_router = APIRouter(prefix="/v1")
 
 
 @main_router.get("/fetch-mdata")
-async def fetch_data(mdata: MdataSchema = Depends(),
-                     settings: config.Settings = Depends(config.get_settings)) -> Response:
-    if mdata.ds.lower() == 'combo':
-        ds_string = f'= {pid_map[mdata.ds.lower()]}'
+async def fetch_data(
+    mdata: MdataSchema = Depends(),
+    settings: config.Settings = Depends(config.get_settings),
+) -> Response:
+    if mdata.ds.lower() == "combo":
+        ds_string = f"= {pid_map[mdata.ds.lower()]}"
+        ds_join_string = sql_text_dct["fetch_mdata_combo_ds"]
     else:
-        ds_string = f'IN ({pid_map[mdata.ds.lower()]})'
-    response = oracle_query(sql_text_dct['fetch_mdata'].format(ds_string,
-                                                               mdata.compound_id),
-                            settings=settings,
-                            blob=False)
+        ds_string = f"IN ({pid_map[mdata.ds.lower()]})"
+        ds_join_string = sql_text_dct["fetch_mdata_cell_ds"]
+    sql_str = sql_text_dct["fetch_mdata_base"] + ' ' + \
+        ds_join_string + ' ' + \
+        sql_text_dct["fetch_mdata_where"]
+    print(sql_str)
+    response = oracle_query(
+        sql_str.format(ds_string, mdata.compound_id),
+        settings=settings,
+        blob=False,
+    )
     return response
 
 
 @main_router.get("/fetch-file")
-async def fetch_file(fdata: FileSchema = Depends(),
-                     settings: config.Settings = Depends(config.get_settings)) -> Response:
-    response = oracle_query(sql_text_dct['fetch_file'].format(fdata.doc_id,
-                                                               fdata.file_name,
-                                                               fdata.id),
-                            settings=settings,
-                            blob=True,
-                            file_name=fdata.file_name)
+async def fetch_file(
+    fdata: FileSchema = Depends(),
+    settings: config.Settings = Depends(config.get_settings),
+) -> Response:
+    response = oracle_query(
+        sql_text_dct["fetch_file"].format(fdata.doc_id, fdata.file_name, fdata.id),
+        settings=settings,
+        blob=True,
+        file_name=fdata.file_name,
+    )
     return response
 
 app.include_router(main_router)

@@ -8,16 +8,20 @@ logger = utils.get_logger(__name__)
 
 def extract_data(output, **kwargs):
     print(output)
-    if kwargs['blob']:
+    if kwargs["blob"]:
         memfile = BytesIO(output[0][0].read())
-        response = StreamingResponse(memfile, media_type="application/x-www-form-urlencoded")
-        response.headers["Content-Disposition"] = f"inline; filename={kwargs['file_name']}"
+        response = StreamingResponse(
+            memfile, media_type="application/x-www-form-urlencoded"
+        )
+        response.headers[
+            "Content-Disposition"
+        ] = f"inline; filename={kwargs['file_name']}"
         return response
     else:
         output_lst = []
         for i, r in enumerate(output):
             output_dct = {}
-            output_dct['ID'] = i
+            output_dct["PID"] = i
             for j, n in enumerate(field_names):
                 output_dct[n] = r[j]
             output_lst.append(output_dct)
@@ -26,11 +30,13 @@ def extract_data(output, **kwargs):
 
 def oracle_query(sql_stmt: str, settings, **kwargs):
     try:
-        with oracle.OracleConnection(settings.oracle_username,
-                                     settings.oracle_password,
-                                     settings.oracle_host,
-                                     settings.oracle_port,
-                                     settings.oracle_sid) as con:
+        with oracle.OracleConnection(
+            settings.oracle_username,
+            settings.oracle_password,
+            settings.oracle_host,
+            settings.oracle_port,
+            settings.oracle_sid,
+        ) as con:
             with con.cursor() as cursor:
                 cursor.execute(sql_stmt)
                 output = cursor.fetchall()
